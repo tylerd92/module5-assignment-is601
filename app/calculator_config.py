@@ -41,7 +41,7 @@ class CalculatorConfig():
         )
 
         self.precision = precision or int(
-            os.getenv('CALCULATOR_MAX_INPUT_VALUE', '1e999')
+            os.getenv('CALCULATOR_PRECISION', '10')
         )
 
         self.max_input_value = max_input_value or Decimal(
