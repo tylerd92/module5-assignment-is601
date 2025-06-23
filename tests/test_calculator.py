@@ -11,6 +11,8 @@ from app.calculator_config import CalculatorConfig
 from app.exceptions import OperationError, ValidationError
 from app.history import LoggingObserver, AutoSaveObserver
 from app.operations import OperationFactory
+import logging
+from unittest.mock import patch, PropertyMock, MagicMock
 
 @pytest.fixture
 def calculator():
@@ -180,3 +182,41 @@ def test_get_history_dataframe(calculator):
     assert 'operand2' in df.columns
     assert 'result' in df.columns
     assert 'timestamp' in df.columns
+
+def test_setup_logging_creates_log_dir_and_configures_logging():
+    config = MagicMock(spec=CalculatorConfig)
+    config.log_dir = "/tmp/logs"
+    config.log_file.resolve.return_value = "/tmp/logs/calculator.log"
+
+    calculator = Calculator.__new__(Calculator)
+    calculator.config = config
+
+    with patch("app.calculator.os.makedirs") as mock_makedirs, \
+            patch("app.calculator.logging.basicConfig") as mock_basicConfig, \
+            patch("app.calculator.logging.info") as mock_logging_info:
+        Calculator._setup_logging(calculator)
+        mock_makedirs.assert_called_once_with("/tmp/logs", exist_ok=True)
+        mock_basicConfig.assert_called_once_with(
+            filename="/tmp/logs/calculator.log",
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            force=True
+        )
+        mock_logging_info.assert_any_call("Logging initialized at: /tmp/logs/calculator.log")
+
+def test_setup_logging_handles_exception_and_raises():
+    config = MagicMock(spec=CalculatorConfig)
+    config.log_dir = "/tmp/logs"
+    config.log_file.resolve.side_effect = Exception("resolve error")
+
+    calculator = Calculator.__new__(Calculator)
+    calculator.config = config
+
+    with patch("app.calculator.os.makedirs"), \
+            patch("builtins.print") as mock_print:
+        with pytest.raises(Exception, match="resolve error"):
+            Calculator._setup_logging(calculator)
+        mock_print.assert_called_once()
+        assert "Error setting up logging: resolve error" in mock_print.call_args[0][0]
+
+

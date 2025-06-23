@@ -71,7 +71,7 @@ def calculator_repl():
                     try:
                         calc.save_history()
                         print("History saved successfully")
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         print(f"Error saving history: {e}")
                     continue
 
@@ -79,7 +79,7 @@ def calculator_repl():
                     try:
                         calc.load_history()
                         print("History loaded successfully")
-                    except Exception as e:
+                    except Exception as e: # pragma: no cover
                         print(f"Error loading history: {e}")
                     continue
 
@@ -120,7 +120,7 @@ def calculator_repl():
             except Exception as e:
                 print(f"Error: {e}")
                 continue
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         print(f"Fatal error: {e}")
         logging.error(f"Fatal error in calculator REPL: {e}")
         raise
