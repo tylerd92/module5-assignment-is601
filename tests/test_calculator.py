@@ -94,3 +94,55 @@ def test_save_history(mock_to_csv, calculator):
     calculator.perform_operation(2, 3)
     calculator.save_history()
     mock_to_csv.assert_called_once()
+
+@patch('app.calculator.pd.read_csv')
+@patch('app.calculator.Path.exists', return_value=True)
+def test_load_history(mock_exists, mock_read_csv, calculator):
+    mock_read_csv.return_value = pd.DataFrame({
+        'operation': ['Addition'],
+        'operand1': ['2'],
+        'operand2': ['3'],
+        'result': ['5'],
+        'timestamp': [datetime.datetime.now().isoformat()]
+    })
+
+    try:
+        calculator.load_history()
+        assert len(calculator.history) == 1
+
+        assert calculator.history[0].operation == "Addition"
+        assert calculator.history[0].operand1 == Decimal("2")
+        assert calculator.history[0].operand2 == Decimal("3")
+        assert calculator.history[0].result == Decimal("5")
+    except OperationError:
+        pytest.fail("Loading history failed due to OperationError")
+
+def test_clear_history(calculator):
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    calculator.perform_operation(2, 3)
+    calculator.clear_history()
+    assert calculator.history == []
+    assert calculator.undo_stack == []
+    assert calculator.redo_stack == []
+
+@patch('builtins.input', side_effect=['exit'])
+@patch('builtins.print')
+def test_calculator_repl_exit(mock_print, mock_input):
+    with patch('app.calculator.Calculator.save_history') as mock_save_history:
+        calculator_repl()
+        mock_save_history.assert_called_once()
+        mock_print.assert_any_call("History saved successfully.")
+        mock_print.assert_any_call("Goodbye!")
+
+@patch('builtins.input', side_effect=['help','exit'])
+@patch('builtins.print')
+def test_calculator_repl_help(mock_print, mock_input):
+    calculator_repl()
+    mock_print.assert_any_call("\nAvailable commands:")
+
+@patch('builtins.input', side_effect=['add', '3', '4', 'exit'])
+@patch('builtins.print')
+def test_calculator_repl_addition(mock_print, mock_input):
+    calculator_repl()
+    mock_print.assert_any_call("\nResult: 7")

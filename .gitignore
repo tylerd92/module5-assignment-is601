@@ -27,6 +27,7 @@ ENV/
 .env
 .venv
 .python-version
+myenv/
 
 # Calculator-specific files
 logs/
