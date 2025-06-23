@@ -1,5 +1,5 @@
 import pytest
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from app.calculation import Calculation
 from app.exceptions import OperationError
@@ -101,21 +101,61 @@ def test_equality():
     assert calc1 != calc3
 
 
-# New Test to Cover Logging Warning
 def test_from_dict_result_mismatch(caplog):
     """
     Test the from_dict method to ensure it logs a warning when the saved result
     does not match the computed result.
     """
-    # Arrange
     data = {
         "operation": "Addition",
         "operand1": "2",
         "operand2": "3",
-        "result": "10",  # Incorrect result to trigger logging.warning
+        "result": "10", 
         "timestamp": datetime.now().isoformat()
     }
 
-    # Act
     with caplog.at_level(logging.WARNING):
         calc = Calculation.from_dict(data)
+
+def test_str_addition():
+    calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
+    assert str(calc) == "Addition(2, 3) = 5"
+
+def test_str_subtraction():
+    calc = Calculation(operation="Subtraction", operand1=Decimal("10"), operand2=Decimal("4"))
+    assert str(calc) == "Subtraction(10, 4) = 6"
+
+def test_str_division_decimal():
+    calc = Calculation(operation="Division", operand1=Decimal("1"), operand2=Decimal("3"))
+    assert str(calc) == f"Division(1, 3) = {calc.result}"
+
+def test_repr_addition():
+    calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
+    expected = (
+        f"Calculation(operation='Addition', "
+        f"operand1=2, "
+        f"operand2=3, "
+        f"result=5, "
+        f"timestamp='{calc.timestamp.isoformat()}')"
+    )
+    assert repr(calc) == expected
+
+def test_repr_division_decimal():
+    calc = Calculation(operation="Division", operand1=Decimal("1"), operand2=Decimal("3"))
+    expected = (
+        f"Calculation(operation='Division', "
+        f"operand1=1, "
+        f"operand2=3, "
+        f"result={calc.result}, "
+        f"timestamp='{calc.timestamp.isoformat()}')"
+    )
+    assert repr(calc) == expected
+
+    
+
+
+
+
+
+
+

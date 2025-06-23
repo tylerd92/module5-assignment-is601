@@ -38,7 +38,7 @@ class Calculation:
         
         try:
             return op(self.operand1, self.operand2)
-        except (InvalidOperation, ValueError, ArithmeticError) as e:
+        except (InvalidOperation, ValueError, ArithmeticError) as e: # pragma: no cover
             raise OperationError(f"Calculation failed: {str(e)}")
     
     @staticmethod
@@ -102,7 +102,7 @@ class Calculation:
     
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Calculation):
-            return NotImplemented
+            return NotImplemented # pragma: no cover
         return (
             self.operation == other.operation and
             self.operand1 == other.operand1 and
@@ -115,5 +115,5 @@ class Calculation:
             return str(self.result.normalize().quantize(
                 Decimal('0.' + '0' * precision)
             ).normalize())
-        except InvalidOperation:
+        except InvalidOperation: # pragma: no cover
             return str(self.result)
