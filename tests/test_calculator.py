@@ -146,3 +146,37 @@ def test_calculator_repl_help(mock_print, mock_input):
 def test_calculator_repl_addition(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nResult: 7")
+
+@patch('app.calculator.logging.warning')
+@patch('app.calculator.Calculator._setup_logging')
+@patch('app.calculator.CalculatorConfig.validate')
+@patch('app.calculator.os.makedirs')
+def test_calculator_init_load_history_exception(
+    mock_makedirs, mock_validate, mock_setup_logging, mock_logging_warning
+):
+    config = Mock(spec=CalculatorConfig)
+    config.log_dir = Path('/tmp/logs')
+    config.history_dir = Path('/tmp/history')
+    with patch.object(Calculator, 'load_history', side_effect=Exception("history error")):
+        Calculator(config=config)
+        mock_logging_warning.assert_any_call("Could not load existing history: history error")
+
+
+def test_save_history_error(calculator):
+    with patch('app.calculator.pd.DataFrame.to_csv', side_effect=Exception("Save error")):
+        with pytest.raises(OperationError, match="Failed to save history: Save error"):
+            calculator.save_history()
+
+def test_get_history_dataframe(calculator):
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    calculator.perform_operation(2, 3)
+    
+    df = calculator.get_history_dataframe()
+    assert isinstance(df, pd.DataFrame)
+    assert not df.empty
+    assert 'operation' in df.columns
+    assert 'operand1' in df.columns
+    assert 'operand2' in df.columns
+    assert 'result' in df.columns
+    assert 'timestamp' in df.columns
