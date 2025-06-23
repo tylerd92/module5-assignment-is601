@@ -16,7 +16,12 @@ Install dependencies
 pip3 install -r requirements.txt
 ```
 
-Create an .env file in the root directory
+Create an .env file in the root directory with at least these environment variables
+```
+CALCULATOR_MAX_HISTORY_SIZE=100
+CALCULATOR_AUTO_SAVE=true
+CALCULATOR_DEFAULT_ENCODING=utf-8
+```
 
 Run main.py to excute program
 ```
