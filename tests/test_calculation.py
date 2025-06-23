@@ -151,11 +151,3 @@ def test_repr_division_decimal():
     )
     assert repr(calc) == expected
 
-    
-
-
-
-
-
-
-
